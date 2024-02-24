@@ -1,8 +1,19 @@
 .folder{
+    width:250px;
     margin:10px;
+    display: flex;
+    justify-content: space-between;
 }
 
 .file{
     margin:10px;
-    padding-left: 20px;
+    display: flex;
+    justify-content: space-between;
+    width:220px;
+}
+
+.deleteBtn{
+    margin-left:4rem;
+    background: none;
+    border:none;
 }
