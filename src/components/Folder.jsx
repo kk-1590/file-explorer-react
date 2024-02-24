@@ -1,7 +1,7 @@
 import { useState } from "react";
 import '../styles.css';
 
-const Folder = ({ handleInsertNode, handleDeleteNode, explorer }) => {
+const Folder = ({ handleInsertNode, handleDeleteNode, handleUpdateNode, explorer }) => {
   console.log(explorer);
 
   const [expand,setExpand] = useState(false);
@@ -9,6 +9,12 @@ const Folder = ({ handleInsertNode, handleDeleteNode, explorer }) => {
     visible : false,
     isFolder : null
   })
+
+
+  const [showUpdateField,setShowUpdateField] = useState({
+    visible : false,
+    isFolder : null
+  });
 
   const handleNewFolder = (e,isFolder) => {
     e.stopPropagation();
@@ -20,10 +26,18 @@ const Folder = ({ handleInsertNode, handleDeleteNode, explorer }) => {
     })
   }
 
-  function handleDeleteFolder(e,isFolder)  {
+  function handleDeleteFolder(e)  {
     e.stopPropagation();
 
     handleDeleteNode(explorer.id);
+  }
+
+  function handleUpdateFolder(newValue,isFolder){
+    console.log(newValue);
+    setShowUpdateField({
+      isFolder,
+      visible:true
+    })
   }
 
   const addNewFolder = (e) => {
@@ -36,36 +50,100 @@ const Folder = ({ handleInsertNode, handleDeleteNode, explorer }) => {
 
   }
 
+  const updateNode = (e) => {
+    if(e.keyCode === 13 && e.target.value){
+      handleUpdateNode(explorer.id,e.target.value);
+      setShowUpdateField({...showUpdateField,visible:false});
+    }
+  }
+
   if(explorer.isFolder){
     return (
       <div style={{ marginTop: "10px" }}>
-        <div className="folder" onClick={() => setExpand(!expand)}>
-          <span>
-            <i
-              className="fa-solid fa-folder-closed"
-              style={{ color: "#FFD43B" }}
-            ></i>
-            &nbsp;&nbsp;{explorer.name}
-          </span>
+        {!showUpdateField.visible && (
+          <div className="folder" onClick={() => setExpand(!expand)}>
+            {expand ? (
+              <span>
+                <i className="fa-solid fa-angle-down"></i>
+              </span>
+            ) : (
+              <span>
+                <i className="fa-solid fa-angle-right"></i>
+              </span>
+            )}
+            <span>
+              {expand ? (
+                <i className="fa-solid fa-folder-open" style={{color: '#FFD43B'}}></i>
+              ) : (
+                <i
+                  className="fa-solid fa-folder-closed"
+                  style={{ color: "#FFD43B" }}
+                ></i>
+              )}
+              &nbsp;&nbsp;{explorer.name}
+            </span>
 
-          <div>
-            <button
-              onClick={(e) => handleNewFolder(e, true)}
-              style={{ background: "none", border: "none" }}
-            >
-              <i className="fa-solid fa-folder-plus fa-lg"></i>
-            </button>
-            <button
-              onClick={(e) => handleNewFolder(e, false)}
-              style={{ background: "none", border: "none" }}
-            >
-              <i className="fa-solid fa-file-circle-plus"></i>
-            </button>
-            <button onClick={(e) => handleDeleteFolder(e, false)}
-            style={{background:"none", border: "none"}}>
-              <i className="fa-solid fa-trash-can"></i>
-            </button>
+            <div>
+              <button
+                onClick={(e) => handleNewFolder(e, true)}
+                style={{ background: "none", border: "none" }}
+              >
+                <i className="fa-solid fa-folder-plus fa-lg"></i>
+              </button>
+              <button
+                onClick={(e) => handleNewFolder(e, false)}
+                style={{ background: "none", border: "none" }}
+              >
+                <i className="fa-solid fa-file-circle-plus"></i>
+              </button>
+              <button
+                onClick={(e) => handleUpdateFolder(e, true)}
+                style={{ background: "none", border: "none" }}
+              >
+                <i className="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button
+                onClick={(e) => handleDeleteFolder(e, false)}
+                style={{ background: "none", border: "none" }}
+              >
+                <i className="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
           </div>
+        )}
+
+        <div
+          style={{
+            display: showUpdateField ? "block" : "none",
+            paddingLeft: "20px",
+          }}
+        >
+          {showUpdateField.visible && (
+            <div
+              className="inputContainer"
+              style={{ display: "flex", width: "200px" }}
+            >
+              <span style={{ marginRight: "1rem" }}>
+                {showUpdateField.isFolder ? (
+                  <i
+                    className="fa-solid fa-folder-closed"
+                    style={{ color: "#FFD43B" }}
+                  ></i>
+                ) : (
+                  <i className="fa-file fa-regular"></i>
+                )}
+              </span>
+              <input
+                type="text"
+                className="inputContainer__input"
+                onKeyDown={(e) => updateNode(e)}
+                onBlur={() =>
+                  setShowUpdateField({ ...showUpdateField, visible: false })
+                }
+                autoFocus
+              />
+            </div>
+          )}
         </div>
 
         <div
@@ -76,7 +154,16 @@ const Folder = ({ handleInsertNode, handleDeleteNode, explorer }) => {
               className="inputContainer"
               style={{ width: "250px", paddingLeft: "10px" }}
             >
-              <span>{showInput.isFolder ? "📂" : "📄"}</span>
+              <span style={{ marginRight: "1rem" }}>
+                {showInput.isFolder ? (
+                  <i
+                    className="fa-solid fa-folder-closed"
+                    style={{ color: "#FFD43B" }}
+                  ></i>
+                ) : (
+                  <i className="fa-file fa-regular"></i>
+                )}
+              </span>
               <input
                 type="text"
                 className="inputContainer__input"
@@ -89,9 +176,10 @@ const Folder = ({ handleInsertNode, handleDeleteNode, explorer }) => {
           {explorer.items.map((exp) => {
             return (
               <Folder
+                key={exp.id}
                 handleInsertNode={handleInsertNode}
                 handleDeleteNode={handleDeleteNode}
-                key={exp.id}
+                handleUpdateNode={handleUpdateNode}
                 explorer={exp}
               />
             );
@@ -103,13 +191,56 @@ const Folder = ({ handleInsertNode, handleDeleteNode, explorer }) => {
   else{
     return (
       <div className="file">
-        <i className="fa-file fa-regular"></i>&nbsp;&nbsp;{explorer.name}
-        <button
-          className="deleteBtn"
-          onClick={(e) => handleDeleteFolder(e, false)}
+        {!showUpdateField.visible && (
+          <div>
+            <i className="fa-file fa-regular"></i>&nbsp;&nbsp;{explorer.name}
+          </div>
+        )}
+        <div
+          style={{
+            display: showUpdateField ? "block" : "none",
+            paddingLeft: "20px",
+          }}
         >
-          <i className="fa-solid fa-trash-can"></i>
-        </button>
+          {showUpdateField.visible && (
+            <div className="inputContainer" style={{ width: "200px" }}>
+              <span style={{marginRight:"1rem"}}>
+                {showUpdateField.isFolder ? (
+                  <i
+                    className="fa-solid fa-folder-closed"
+                    style={{ color: "#FFD43B" }}
+                  ></i>
+                ) : (
+                  <i className="fa-file fa-regular"></i>
+                )}
+              </span>
+              <input
+                type="text"
+                className="inputContainer__input"
+                onKeyDown={(e) => updateNode(e)}
+                onBlur={() =>
+                  setShowUpdateField({ ...showUpdateField, visible: false })
+                }
+                autoFocus
+              />
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <button
+            onClick={() => handleUpdateFolder(explorer.name, false)}
+            style={{ background: "none", border: "none" }}
+          >
+            <i className="fa-solid fa-pen-to-square"></i>
+          </button>
+          <button
+            className="deleteBtn"
+            onClick={(e) => handleDeleteFolder(e, false)}
+          >
+            <i className="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
       </div>
     );
   }

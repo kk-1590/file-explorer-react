@@ -38,7 +38,20 @@ const useTraverseTree = () => {
         return { ...tree };
     }
 
-    return {insertNode,deleteNode};
+    function updateNode(tree,nodeId,newName){
+        if(tree.id === nodeId){
+            tree.name = newName;
+            return tree;
+        }
+
+        const latestNode = tree.items.map((item) => {
+            return updateNode(item,nodeId, newName);
+        });
+
+        return {...tree};
+    }
+
+    return {insertNode,deleteNode, updateNode};
 };
 
 export default useTraverseTree;
